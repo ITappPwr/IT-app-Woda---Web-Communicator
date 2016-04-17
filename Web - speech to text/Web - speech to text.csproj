@@ -109,8 +109,9 @@
     <Content Include="mic-animate.gif" />
     <Content Include="mic-slash.gif" />
     <Content Include="mic.gif" />
+    <Content Include="SpeechToText.js" />
     <Content Include="Web.config" />
-    <Content Include="webspeechdemo.html" />
+    <Content Include="SpeechToText.html" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
