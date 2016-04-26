@@ -80,6 +80,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Properties\PublishProfiles\itapp.pubxml" />
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Css\ChatStyle.css" />
     <Content Include="Css\JQueryUI\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
