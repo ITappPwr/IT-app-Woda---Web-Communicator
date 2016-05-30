@@ -27,7 +27,10 @@ namespace SignalRChat
             {
                 ConnectedUsers.Add(new UserDetail { ConnectionId = id, UserName = userName });
 
+                // send to caller
                 Clients.Caller.onConnected(id, userName, ConnectedUsers, CurrentMessage);
+
+                // send to all except caller client
                 Clients.AllExcept(id).onNewUserConnected(id, userName);
 
             }
@@ -36,10 +39,10 @@ namespace SignalRChat
 
         public void SendMessageToAll(string userName, string message)
         {
-            // przechowa 100 wiadomosci
+            // store last 100 messages in cache
             AddMessageinCache(userName, message);
 
-            // Broadcast 
+            // Broad cast message
             Clients.All.messageReceived(userName, message);
         }
 
@@ -53,8 +56,10 @@ namespace SignalRChat
 
             if (toUser != null && fromUser!=null)
             {
-                // prywantan konwersacja
+                // send to 
                 Clients.Client(toUserId).sendPrivateMessage(fromUserId, fromUser.UserName, message); 
+
+                // send to caller user
                 Clients.Caller.sendPrivateMessage(toUserId, fromUser.UserName, message); 
             }
 

@@ -57,7 +57,7 @@ $.widget("ui.dialog", {
 			at: "center",
 			of: window,
 			collision: "fit",
-			
+			// ensure that the titlebar is never outside the document
 			using: function( pos ) {
 				var topOffset = $( this ).css( pos ).offset().top;
 				if ( topOffset < 0 ) {
@@ -75,7 +75,7 @@ $.widget("ui.dialog", {
 
 	_create: function() {
 		this.originalTitle = this.element.attr( "title" );
-		
+		// #5742 - .attr() might return a DOMElement
 		if ( typeof this.originalTitle !== "string" ) {
 			this.originalTitle = "";
 		}
@@ -98,10 +98,10 @@ $.widget("ui.dialog", {
 				.addClass( uiDialogClasses + options.dialogClass )
 				.css({
 					display: "none",
-					outline: 0, 
+					outline: 0, // TODO: move to stylesheet
 					zIndex: options.zIndex
 				})
-				
+				// setting tabIndex makes the div focusable
 				.attr( "tabIndex", -1)
 				.keydown(function( event ) {
 					if ( options.closeOnEscape && !event.isDefaultPrevented() && event.keyCode &&
@@ -125,6 +125,7 @@ $.widget("ui.dialog", {
 				.addClass( "ui-dialog-titlebar  ui-widget-header  " +
 					"ui-corner-all  ui-helper-clearfix" )
 				.bind( "mousedown", function() {
+					// Dialog isn't getting focus when dragging (#8063)
 					uiDialog.focus();
 				})
 				.prependTo( uiDialog );
@@ -148,6 +149,7 @@ $.widget("ui.dialog", {
 				.addClass( "ui-dialog-title" )
 				.html( title )
 				.prependTo( uiDialogTitlebar );
+
 			uiDialogButtonPane = ( this.uiDialogButtonPane = $( "<div>" ) )
 				.addClass( "ui-dialog-buttonpane ui-widget-content ui-helper-clearfix" );
 
@@ -178,7 +180,7 @@ $.widget("ui.dialog", {
 			uiDialog.bgiframe();
 		}
 
-		
+		// prevent tabbing out of modal dialogs
 		this._on( uiDialog, { keydown: function( event ) {
 			if ( !options.modal || event.keyCode !== $.ui.keyCode.TAB ) {
 				return;

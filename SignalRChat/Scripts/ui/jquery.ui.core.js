@@ -13,6 +13,9 @@
 var uuid = 0,
 	runiqueId = /^ui-id-\d+$/;
 
+// prevent duplicate loading
+// this is only a problem because we proxy existing functions
+// and we don't want to double proxy them
 $.ui = $.ui || {};
 if ( $.ui.version ) {
 	return;
@@ -87,8 +90,15 @@ $.fn.extend({
 		if ( this.length ) {
 			var elem = $( this[ 0 ] ), position, value;
 			while ( elem.length && elem[ 0 ] !== document ) {
+				// Ignore z-index if position is set to a value where z-index is ignored by the browser
+				// This makes behavior of this function consistent across browsers
+				// WebKit always returns auto if the element is positioned
 				position = elem.css( "position" );
 				if ( position === "absolute" || position === "relative" || position === "fixed" ) {
+					// IE returns 0 when zIndex is not specified
+					// other browsers return a string
+					// we ignore the case of nested elements with an explicit value of 0
+					// <div style="z-index: -10;"><div style="z-index: 0;"></div></div>
 					value = parseInt( elem.css( "zIndex" ), 10 );
 					if ( !isNaN( value ) && value !== 0 ) {
 						return value;
@@ -118,6 +128,7 @@ $.fn.extend({
 	}
 });
 
+// selectors
 function focusable( element, isTabIndexNotNaN ) {
 	var map, mapName, img,
 		nodeName = element.nodeName.toLowerCase();
@@ -135,6 +146,7 @@ function focusable( element, isTabIndexNotNaN ) {
 		"a" === nodeName ?
 			element.href || isTabIndexNotNaN :
 			isTabIndexNotNaN) &&
+		// the element and all of its ancestors must be visible
 		visible( element );
 }
 
@@ -152,7 +164,7 @@ $.extend( $.expr[ ":" ], {
 				return !!$.data( elem, dataName );
 			};
 		}) :
-
+		// support: jQuery <1.8
 		function( elem, i, match ) {
 			return !!$.data( elem, match[ 3 ] );
 		},
@@ -168,10 +180,14 @@ $.extend( $.expr[ ":" ], {
 	}
 });
 
+// support
 $(function() {
 	var body = document.body,
 		div = body.appendChild( div = document.createElement( "div" ) );
 
+	// access offsetHeight before setting the style to prevent a layout bug
+	// in IE 9 which causes the element to continue to take up space even
+	// after it is removed from the DOM (#8026)
 	div.offsetHeight;
 
 	$.extend( div.style, {
@@ -183,9 +199,13 @@ $(function() {
 
 	$.support.minHeight = div.offsetHeight === 100;
 	$.support.selectstart = "onselectstart" in div;
+
+	// set display to none to avoid a layout bug in IE
+	// http://dev.jquery.com/ticket/4014
 	body.removeChild( div ).style.display = "none";
 });
 
+// support: jQuery <1.8
 if ( !$( "<a>" ).outerWidth( 1 ).jquery ) {
 	$.each( [ "Width", "Height" ], function( i, name ) {
 		var side = name === "Width" ? [ "Left", "Right" ] : [ "Top", "Bottom" ],
@@ -232,6 +252,7 @@ if ( !$( "<a>" ).outerWidth( 1 ).jquery ) {
 	});
 }
 
+// support: jQuery 1.6.1, 1.6.2 (http://bugs.jquery.com/ticket/9413)
 if ( $( "<a>" ).data( "a-b", "a" ).removeData( "a-b" ).data( "a-b" ) ) {
 	$.fn.removeData = (function( removeData ) {
 		return function( key ) {
@@ -243,6 +264,12 @@ if ( $( "<a>" ).data( "a-b", "a" ).removeData( "a-b" ).data( "a-b" ) ) {
 		};
 	})( $.fn.removeData );
 }
+
+
+
+
+
+// deprecated
 
 (function() {
 	var uaMatch = /msie ([\w.]+)/.exec( navigator.userAgent.toLowerCase() ) || [];
@@ -264,6 +291,7 @@ $.fn.extend({
 });
 
 $.extend( $.ui, {
+	// $.ui.plugin is deprecated.  Use the proxy pattern instead.
 	plugin: {
 		add: function( module, option, set ) {
 			var i,
@@ -290,8 +318,10 @@ $.extend( $.ui, {
 
 	contains: $.contains,
 
+	// only used by resizable
 	hasScroll: function( el, a ) {
 
+		//If overflow is hidden, the element might have extra content, but the user wants to hide it
 		if ( $( el ).css( "overflow" ) === "hidden") {
 			return false;
 		}
@@ -302,16 +332,23 @@ $.extend( $.ui, {
 		if ( el[ scroll ] > 0 ) {
 			return true;
 		}
+
+		// TODO: determine which cases actually cause this to happen
+		// if the element doesn't have the scroll set, see if it's possible to
+		// set the scroll
 		el[ scroll ] = 1;
 		has = ( el[ scroll ] > 0 );
 		el[ scroll ] = 0;
 		return has;
 	},
 
+	// these are odd functions, fix the API or move into individual plugins
 	isOverAxis: function( x, reference, size ) {
+		//Determines when x coordinate is over "b" element axis
 		return ( x > reference ) && ( x < ( reference + size ) );
 	},
 	isOver: function( y, x, top, left, height, width ) {
+		//Determines when x, y coordinates is over "b" element
 		return $.ui.isOverAxis( y, top, height ) && $.ui.isOverAxis( x, left, width );
 	}
 });

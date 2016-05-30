@@ -61,12 +61,14 @@
                      ['yue-Hant-HK', '粵語 (香港)']],
  ['日本語',           ['ja-JP']],
  ['Lingua latīna',   ['la']]];
+
 for (var i = 0; i < langs.length; i++) {
     select_language.options[i] = new Option(langs[i][0], i);
 }
 select_language.selectedIndex = 6;
 updateCountry();
 select_dialect.selectedIndex = 6;
+showInfo('info_start');
 
 function updateCountry() {
     for (var i = select_dialect.options.length - 1; i >= 0; i--) {
@@ -78,6 +80,7 @@ function updateCountry() {
     }
     select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
 }
+
 var create_email = false;
 var final_transcript = '';
 var recognizing = false;
@@ -90,19 +93,21 @@ if (!('webkitSpeechRecognition' in window)) {
     var recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
+
     recognition.onstart = function() {
         recognizing = true;
         showInfo('info_speak_now');
-        start_img.src = 'mic-animate.gif';
+        start_img.src = 'Images/SpeechToText/mic-animate.gif';
     };
+
     recognition.onerror = function(event) {
         if (event.error == 'no-speech') {
-            start_img.src = 'mic.gif';
+            start_img.src = 'Images/SpeechToText/mic.gif';
             showInfo('info_no_speech');
             ignore_onend = true;
         }
         if (event.error == 'audio-capture') {
-            start_img.src = 'mic.gif';
+            start_img.src = 'Images/SpeechToText/mic.gif';
             showInfo('info_no_microphone');
             ignore_onend = true;
         }
@@ -115,12 +120,13 @@ if (!('webkitSpeechRecognition' in window)) {
             ignore_onend = true;
         }
     };
+
     recognition.onend = function() {
         recognizing = false;
         if (ignore_onend) {
             return;
         }
-        start_img.src = 'mic.gif';
+        start_img.src = 'Images/SpeechToText/mic.gif';
         if (!final_transcript) {
             showInfo('info_start');
             return;
@@ -129,7 +135,7 @@ if (!('webkitSpeechRecognition' in window)) {
         if (window.getSelection) {
             window.getSelection().removeAllRanges();
             var range = document.createRange();
-            range.selectNode(document.getElementById('final_span'));
+            range.selectNode(document.getElementById('txtMessage'));
             window.getSelection().addRange(range);
         }
         if (create_email) {
@@ -137,6 +143,7 @@ if (!('webkitSpeechRecognition' in window)) {
             createEmail();
         }
     };
+
     recognition.onresult = function(event) {
         var interim_transcript = '';
         for (var i = event.resultIndex; i < event.results.length; ++i) {
@@ -147,26 +154,34 @@ if (!('webkitSpeechRecognition' in window)) {
             }
         }
         final_transcript = capitalize(final_transcript);
-        final_span.innerHTML = linebreak(final_transcript);
-        interim_span.innerHTML = linebreak(interim_transcript);
+
+        document.getElementById("txtMessage").value = linebreak(final_transcript);
+        if (interim_transcript != '') {
+            document.getElementById("txtMessage").value = linebreak(interim_transcript);
+        }
+
         if (final_transcript || interim_transcript) {
             showButtons('inline-block');
         }
     };
 }
+
 function upgrade() {
     start_button.style.visibility = 'hidden';
     showInfo('info_upgrade');
 }
+
 var two_line = /\n\n/g;
 var one_line = /\n/g;
 function linebreak(s) {
     return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
 }
+
 var first_char = /\S/;
 function capitalize(s) {
     return s.replace(first_char, function(m) { return m.toUpperCase(); });
 }
+
 function createEmail() {
     var n = final_transcript.indexOf('\n');
     if (n < 0 || n >= 80) {
@@ -176,6 +191,7 @@ function createEmail() {
     var body = encodeURI(final_transcript.substring(n + 1));
     window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
+
 function copyButton() {
     if (recognizing) {
         recognizing = false;
@@ -185,6 +201,7 @@ function copyButton() {
     copy_info.style.display = 'inline-block';
     showInfo('');
 }
+
 function emailButton() {
     if (recognizing) {
         create_email = true;
@@ -197,6 +214,7 @@ function emailButton() {
     email_info.style.display = 'inline-block';
     showInfo('');
 }
+
 function startButton(event) {
     if (recognizing) {
         recognition.stop();
@@ -206,13 +224,12 @@ function startButton(event) {
     recognition.lang = select_dialect.value;
     recognition.start();
     ignore_onend = false;
-    final_span.innerHTML = '';
-    interim_span.innerHTML = '';
-    start_img.src = 'mic-slash.gif';
+    start_img.src = 'Images/SpeechToText/mic-slash.gif';
     showInfo('info_allow');
     showButtons('none');
     start_timestamp = event.timeStamp;
 }
+
 function showInfo(s) {
     if (s) {
         for (var child = info.firstChild; child; child = child.nextSibling) {
@@ -225,14 +242,11 @@ function showInfo(s) {
         info.style.visibility = 'hidden';
     }
 }
+
 var current_style;
 function showButtons(style) {
     if (style == current_style) {
         return;
     }
     current_style = style;
-    copy_button.style.display = style;
-    email_button.style.display = style;
-    copy_info.style.display = 'none';
-    email_info.style.display = 'none';
 }
